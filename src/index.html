@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="CampusSkill learning milestone registry running on a local Ganache blockchain, deployed with Truffle.">
+  <meta name="theme-color" content="#060a18">
+  <title>CampusSkill · Local Ganache dApp</title>
+  <link rel="icon" href="assets/campus-learning.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <!-- ================= HEADER ================= -->
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M4 16.5 9 19l5-2.5L9 14z" fill="#0B1020"/>
+            <path d="M10 10.5 15 13l5-2.5L15 8z" fill="#0B1020" fill-opacity=".75"/>
+            <path d="M4 10.5 9 13l5-2.5L9 8z" fill="#fff" fill-opacity=".9"/>
+            <path d="M10 4.5 15 7l5-2.5L15 2z" fill="#fff"/>
+          </svg>
+        </div>
+        <div>
+          <h1>CampusSkill</h1>
+          <p>Learning milestones on a local Ganache blockchain · Truffle edition</p>
+        </div>
+      </div>
+
+      <div class="status-group">
+        <span class="pill" title="Blockchain connection">
+          <span class="dot" id="networkDot" data-state="idle" aria-hidden="true"></span>
+          <span>Network: <strong id="networkLabel">Connecting…</strong></span>
+        </span>
+        <label class="pill account-pill" title="Ganache account used to send transactions">
+          <span class="dot" id="walletDot" data-state="idle" aria-hidden="true"></span>
+          <span>Account:</span>
+          <select id="accountSelect" class="account-select" disabled>
+            <option>Loading…</option>
+          </select>
+        </label>
+        <button type="button" class="btn btn-primary" id="reconnectBtn">
+          <span class="spinner" aria-hidden="true"></span>
+          <span class="btn-text">Reconnect</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="shell banner-area" id="bannerArea" aria-live="polite"></div>
+
+  <!-- ================= MAIN ================= -->
+  <main id="main" class="shell layout">
+    <div class="main-col">
+
+      <section class="hero" aria-labelledby="heroTitle">
+        <div>
+          <span class="eyebrow" id="heroGreeting">Assignment 3 · Truffle &amp; Ganache</span>
+          <h2 id="heroTitle">Your learning milestones, deployed locally with Truffle.</h2>
+          <p class="hero-lead">
+            This is the CampusSkill contract from Assignment 2, compiled and migrated with
+            <strong>Truffle</strong> onto a local <strong>Ganache</strong> blockchain. The page reads the
+            ABI and contract address straight from Truffle's build artifact and sends real
+            transactions from Ganache's test accounts.
+          </p>
+          <h3 class="visually-hidden" id="howTitle">How to use this dashboard</h3>
+          <ol class="hero-steps" aria-labelledby="howTitle">
+            <li>Start Ganache and run <code>truffle migrate</code></li>
+            <li>Pick a Ganache account and publish a milestone</li>
+            <li>Mark it as completed from the same account</li>
+          </ol>
+          <div class="hero-actions">
+            <a class="btn btn-dark" href="#createSection">Add a milestone</a>
+            <a class="hero-link" href="https://archive.trufflesuite.com/guides/pet-shop/" target="_blank" rel="noopener noreferrer">Truffle Pet Shop guide</a>
+          </div>
+        </div>
+        <img class="hero-art" src="assets/campus-learning.svg" width="480" height="360"
+             alt="Illustration of three chained blocks rising like stairs toward a completion flag, with a graduation cap and an open book">
+      </section>
+
+      <section aria-labelledby="statsTitle">
+        <h2 id="statsTitle" class="visually-hidden">Registry statistics</h2>
+        <div class="stats">
+          <article class="stat total">
+            <p class="stat-label"><span class="stat-icon" aria-hidden="true">Σ</span> Total milestones</p>
+            <strong class="stat-value" id="statTotal">–</strong>
+            <p class="stat-note">Read from getMilestoneCount()</p>
+          </article>
+          <article class="stat done">
+            <p class="stat-label"><span class="stat-icon" aria-hidden="true">✓</span> Completed</p>
+            <strong class="stat-value" id="statCompleted">–</strong>
+            <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="barCompleted"></div></div>
+          </article>
+          <article class="stat pending">
+            <p class="stat-label"><span class="stat-icon" aria-hidden="true">◷</span> Pending</p>
+            <strong class="stat-value" id="statPending">–</strong>
+            <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="barPending"></div></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="timelineTitle">
+        <div class="card-head">
+          <div>
+            <h2 id="timelineTitle">Learning timeline</h2>
+            <p class="card-sub" id="syncNote">Milestones are read directly from the deployed contract.</p>
+          </div>
+          <div class="toolbar">
+            <div class="segmented" role="group" aria-label="Filter milestones" id="filterGroup">
+              <button type="button" data-filter="all" aria-pressed="true">All</button>
+              <button type="button" data-filter="mine" aria-pressed="false">Mine</button>
+              <button type="button" data-filter="pending" aria-pressed="false">Pending</button>
+              <button type="button" data-filter="completed" aria-pressed="false">Completed</button>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" id="sortBtn">Newest first</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="refreshBtn">
+              <span class="spinner" aria-hidden="true"></span>
+              <span class="btn-text">Refresh</span>
+            </button>
+          </div>
+        </div>
+        <div id="timelineContainer" aria-live="polite" aria-busy="false"></div>
+      </section>
+
+      <section class="card" aria-labelledby="eventsTitle">
+        <div class="card-head">
+          <div>
+            <h2 id="eventsTitle">Contract events</h2>
+            <p class="card-sub">MilestoneCreated and MilestoneCompleted events emitted by the contract, newest first.</p>
+          </div>
+        </div>
+        <ul class="event-log" id="eventLog" aria-labelledby="eventsTitle"></ul>
+      </section>
+    </div>
+
+    <!-- ================= SIDE COLUMN ================= -->
+    <aside class="side-col" aria-label="Your progress and actions">
+
+      <section class="card profile" aria-labelledby="profileTitle">
+        <div class="ring" role="img" id="progressRing" aria-label="Completion rate of the selected account">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <circle class="ring-track" cx="60" cy="60" r="54"/>
+            <circle class="ring-fill" id="ringFill" cx="60" cy="60" r="54"/>
+          </svg>
+          <div class="ring-label"><strong id="ringPercent">–</strong><span>complete</span></div>
+        </div>
+        <h2 id="profileTitle">Selected account</h2>
+        <p class="profile-address" id="profileAddress">Waiting for Ganache…</p>
+        <div class="profile-stats">
+          <span class="chip chip-completed" id="myCompleted">0 completed</span>
+          <span class="chip chip-pending" id="myPending">0 pending</span>
+          <span class="chip" id="myBalance">– ETH</span>
+        </div>
+      </section>
+
+      <section class="card" id="createSection" aria-labelledby="createTitle">
+        <div class="card-head">
+          <div>
+            <h2 id="createTitle">New milestone</h2>
+            <p class="card-sub">Sent as a transaction from the selected Ganache account.</p>
+          </div>
+        </div>
+        <form class="form" id="createForm" novalidate>
+          <div class="field">
+            <div class="field-head">
+              <label for="titleInput">Milestone title</label>
+              <span class="counter" id="titleCounter">0 / 80</span>
+            </div>
+            <input class="input" id="titleInput" name="title" type="text" maxlength="80" autocomplete="off"
+                   placeholder="e.g. Deployed a contract with Truffle" aria-describedby="titleError titleCounter" required>
+            <p class="field-error" id="titleError"></p>
+          </div>
+          <div class="field">
+            <div class="field-head">
+              <label for="descInput">Description</label>
+              <span class="counter" id="descCounter">0 / 280</span>
+            </div>
+            <textarea class="input" id="descInput" name="description" maxlength="280"
+                      placeholder="What did you learn or build? e.g. Wrote a migration script and deployed to Ganache."
+                      aria-describedby="descError descCounter" required></textarea>
+            <p class="field-error" id="descError"></p>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" id="createBtn">
+            <span class="spinner" aria-hidden="true"></span>
+            <span class="btn-text">Publish milestone</span>
+          </button>
+          <p class="form-note">Limits are 80 and 280 bytes, the same limits the smart contract enforces.</p>
+        </form>
+      </section>
+
+      <section class="card tx-card" aria-labelledby="txTitle">
+        <div class="card-head">
+          <h2 id="txTitle">Transaction status</h2>
+        </div>
+        <div class="tx-status" id="txStatus" data-state="idle" role="status">
+          <span class="dot" aria-hidden="true"></span>
+          <span id="txMessage">No transaction yet.</span>
+        </div>
+        <h3 class="visually-hidden" id="txStepsTitle">Transaction progress</h3>
+        <ul class="tx-steps" id="txSteps" aria-labelledby="txStepsTitle">
+          <li data-step="sign">Sent from Ganache account</li>
+          <li data-step="submit">Transaction hash received</li>
+          <li data-step="confirm">Mined in a Ganache block</li>
+        </ul>
+        <dl class="tx-details" id="txDetails"></dl>
+        <h3 class="visually-hidden" id="activityTitle">Transactions in this session</h3>
+        <ul class="activity" id="activityList" aria-labelledby="activityTitle"></ul>
+      </section>
+
+      <section class="card" aria-labelledby="chainTitle">
+        <div class="card-head">
+          <h2 id="chainTitle">Deployment details</h2>
+        </div>
+        <dl class="tx-details chain-details" id="chainDetails"></dl>
+      </section>
+    </aside>
+  </main>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="footer">
+    <div class="shell">
+      <div class="footer-grid">
+        <div>
+          <h2>CampusSkill</h2>
+          <p>Assignment 3 build: the Assignment 2 contract deployed with <strong>Truffle</strong> to a local <strong>Ganache</strong> blockchain.</p>
+          <p class="disclaimer">
+            Academic project for MG3012 Blockchain Technology for Business (Assignment 3). Milestones are
+            self-reported and are <strong>not</strong> accredited certificates. Ganache is a private test
+            chain on your own computer and its ETH has no value.
+          </p>
+        </div>
+        <nav aria-labelledby="footerTools">
+          <h2 id="footerTools">Tools</h2>
+          <ul>
+            <li><a href="https://archive.trufflesuite.com/docs/truffle/" target="_blank" rel="noopener noreferrer">Truffle docs (archive)</a></li>
+            <li><a href="https://archive.trufflesuite.com/docs/ganache/" target="_blank" rel="noopener noreferrer">Ganache docs (archive)</a></li>
+            <li><a href="https://archive.trufflesuite.com/guides/pet-shop/" target="_blank" rel="noopener noreferrer">Pet Shop tutorial</a></li>
+          </ul>
+        </nav>
+        <nav aria-labelledby="footerDocs">
+          <h2 id="footerDocs">Documentation</h2>
+          <ul>
+            <li><a href="https://docs.ethers.org/v6/" target="_blank" rel="noopener noreferrer">ethers.js v6 docs</a></li>
+            <li><a href="https://docs.soliditylang.org/en/v0.8.20/" target="_blank" rel="noopener noreferrer">Solidity 0.8.20 docs</a></li>
+            <li><a href="https://nodejs.org/en/download" target="_blank" rel="noopener noreferrer">Node.js download</a></li>
+          </ul>
+        </nav>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 CampusSkill · MG3012 Assignment 3</span>
+        <span>Solidity · Truffle · Ganache · HTML · CSS · JavaScript · ethers.js v6</span>
+      </div>
+    </div>
+  </footer>
+
+  <div class="toasts" id="toastRegion" role="status" aria-live="polite"></div>
+
+  <!-- ethers.js v6 (pinned), the generated contract config, then the app -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+  <script src="contract-config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

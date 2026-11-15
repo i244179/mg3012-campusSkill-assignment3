@@ -1,0 +1,24 @@
+{
+  "name": "campusskill-assignment3",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CampusSkill on-chain learning milestone registry - MG3012 Assignment 3 (Truffle + Ganache)",
+  "license": "MIT",
+  "scripts": {
+    "ganache": "ganache --server.host 127.0.0.1 --server.port 7545 --chain.chainId 1337 --chain.networkId 5777 --wallet.deterministic --wallet.totalAccounts 10 --wallet.defaultBalance 100 --database.dbPath .ganache-db",
+    "compile": "truffle compile",
+    "test": "truffle test --network development",
+    "migrate": "truffle migrate --network development && node scripts/sync-frontend.js",
+    "migrate:reset": "truffle migrate --network development --reset && node scripts/sync-frontend.js",
+    "sync": "node scripts/sync-frontend.js",
+    "frontend": "http-server src -a 127.0.0.1 -p 8080 -c-1"
+  },
+  "devDependencies": {
+    "ganache": "7.9.2",
+    "http-server": "14.1.1",
+    "truffle": "5.11.5"
+  },
+  "engines": {
+    "node": ">=18 <=22"
+  }
+}
